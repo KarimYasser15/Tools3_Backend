@@ -2,6 +2,8 @@
 const {
   Model
 } = require('sequelize');
+const bcrypt = require('bcrypt');
+const order = require('./order');
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     /**
@@ -11,13 +13,19 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      user.hasMany(models.order,{foreignKey: 'createdBy'});
     }
   }
   user.init({
     name: DataTypes.STRING,
     email: DataTypes.STRING,
     phone: DataTypes.STRING,
-    password: DataTypes.STRING,
+    password: {type: DataTypes.STRING,
+      set(value) {
+        const hashPassword = bcrypt.hashSync(value, 10);
+        this.setDataValue('password', hashPassword);
+      }
+    },
   }, {
     sequelize,
     modelName: 'user',
