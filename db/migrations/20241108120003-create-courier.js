@@ -2,40 +2,28 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('order', {
+    await queryInterface.createTable('courier', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      pickUpLocation: {
+      name: {
         allowNull: false,
         type: Sequelize.STRING
       },
-      dropOffLocation: {
+      email: {
         allowNull: false,
         type: Sequelize.STRING
       },
-      packageDetails: {
+      password: {
         allowNull: false,
         type: Sequelize.STRING
       },
-      deliveryTime: {
+      phone: {
         allowNull: false,
-        type: Sequelize.DATE
-      },
-      createdBy: {
-        allowNull: false,
-        type: Sequelize.INTEGER
-      },
-      orderStatus: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
-      courierInfo: {
-        allowNull: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -48,6 +36,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('order');
+    await queryInterface.dropTable('courier');
   }
 };

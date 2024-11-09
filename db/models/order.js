@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       order.belongsTo(models.user, {foreignKey: 'createdBy'});
+      order.belongsTo(models.courier, {foreignKey: 'courierInfo'});
     }
   }
   order.init({
@@ -22,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     deliveryTime: DataTypes.DATE,
     createdBy: DataTypes.INTEGER,
     orderStatus: DataTypes.STRING,
-    courierInfo: DataTypes.STRING,
+    courierInfo: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'order',

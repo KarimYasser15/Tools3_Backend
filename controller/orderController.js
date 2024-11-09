@@ -39,19 +39,6 @@ const getOrderByUser = async (req, res, next) => {
   }
 };
 
-const getAllOrders = async (req, res, next) => {
-  try {
-    const orders = await db.order.findAll({include: db.user});
-
-    return res.status(200).json({
-      status: "Success",
-      data: orders,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 const cancelOrder = async (req, res, next) => {
   const userId = req.user.id;
   const body = req.body;
@@ -76,7 +63,11 @@ const cancelOrder = async (req, res, next) => {
         .status(409)
         .json({ status: "fail", message: "Order is already cancelled" });
     }
-
+    if(order.orderStatus != "Pending") {
+        return res
+        .status(409)
+        .json({ status: "fail", message: "Order is not Pending to cancel" });
+    }
     order.orderStatus = "Cancelled";
     await order.save();
 
@@ -90,32 +81,4 @@ const cancelOrder = async (req, res, next) => {
   }
 };
 
-const deleteOrder = async (req, res, next) => {
-  const userId = req.user.id;
-  const body = req.body;
-
-  try {
-    const order = await db.order.findOne({
-      where: {
-        id: body.id,
-      },
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Order not found",
-      });
-    }
-
-    await order.destroy();
-    return res.status(200).json({
-      status: "success",
-      message: "Order deleted successfully",
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-module.exports = { createOrder, getOrderByUser, getAllOrders, cancelOrder, deleteOrder };
+module.exports = { createOrder, getOrderByUser, cancelOrder };

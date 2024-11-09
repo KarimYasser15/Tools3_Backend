@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const db = require("../db/models/index");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -70,7 +69,7 @@ const login = async (req, res, next) => {
   });
   return res
     .status(200)
-    .json({ status: "success", message: "Login successful", token });
+    .json({ status: "success", message: "Login successful", token, data: result});
 };
 
 const authentication = async (req, res, next) => {
@@ -88,7 +87,7 @@ const authentication = async (req, res, next) => {
     error.statusCode = 401;
     return next(error);
   }
-  
+
   try {
 
     const tokenDetail = jwt.verify(idToken, process.env.JWT_SECRET_KEY);
