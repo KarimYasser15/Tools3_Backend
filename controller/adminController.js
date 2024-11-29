@@ -9,26 +9,27 @@ const generateToken = (payload) => {
 };
 
 const signup = async (req, res, next) => {
+  try {
     const body = req.body;
-  
+
     const checkExist = await db.admin.findOne({ where: { email: body.email } });
     if (checkExist) {
       return res
         .status(401)
         .json({ status: "fail", message: "Admin Already Exists" });
     }
-  
+
     const newAdmin = await db.admin.create({
       email: body.email,
       password: body.password,
       name: body.name,
     });
-  
+
     const result = newAdmin.toJSON();
     result.token = generateToken({
       id: result.id,
     });
-  
+
     if (!result) {
       return res.status(400).json({
         status: "fail",
@@ -40,15 +41,20 @@ const signup = async (req, res, next) => {
       message: "Admin created successfully",
       data: result,
     });
-  };
+  } catch (error) {
+    return res.status(500).json({ status: "fail", message: error });
+  }
+};
 
-  const login = async (req, res, next) => {
+const login = async (req, res, next) => {
+  try {
     const { email, password } = req.body;
-  
+
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ status: "fail", message: "Email and Password must be provided" });
+      return res.status(400).json({
+        status: "fail",
+        message: "Email and Password must be provided",
+      });
     }
     const result = await db.admin.findOne({ where: { email } });
     if (!result) {
@@ -62,52 +68,55 @@ const signup = async (req, res, next) => {
         .status(401)
         .json({ status: "fail", message: "Incorrect Password" });
     }
-  
+
     const token = generateToken({
       id: result.id,
     });
-    return res
-      .status(200)
-      .json({ status: "success", message: "Login successful", token, data: result });
-  };
+    return res.status(200).json({
+      status: "success",
+      message: "Login successful",
+      token,
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({ status: "fail", message: error });
+  }
+};
 
-  const authentication = async (req, res, next) => {
-    let idToken = "";
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      idToken = req.headers.authorization.split(" ")[1];
-      console.log("Token", idToken);
-    }
-  
-    if (!idToken) {
-      const error = new Error("Please Login to access");
-      error.statusCode = 401;
+const authentication = async (req, res, next) => {
+  let idToken = "";
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    idToken = req.headers.authorization.split(" ")[1];
+    console.log("Token", idToken);
+  }
+
+  if (!idToken) {
+    const error = new Error("Please Login to access");
+    error.statusCode = 401;
+    return next(error);
+  }
+
+  try {
+    const tokenDetail = jwt.verify(idToken, process.env.JWT_SECRET_KEY);
+    const freshAdmin = await db.admin.findByPk(tokenDetail.id);
+
+    if (!freshAdmin) {
+      const error = new Error("Admin Doesn't Exist");
+      error.statusCode = 400;
       return next(error);
     }
-  
-    try {
-  
-      const tokenDetail = jwt.verify(idToken, process.env.JWT_SECRET_KEY);
-      const freshAdmin = await db.admin.findByPk(tokenDetail.id);
-  
-      if (!freshAdmin) {
-        const error = new Error("Admin Doesn't Exist");
-        error.statusCode = 400; 
-        return next(error);
-      }
-  
-      req.admin = freshAdmin;
-      return next();
-  
-    } catch (err) {
-        console.log("ERROR TOKEN", err);
-      const error = new Error("Invalid or expired token");
-      error.statusCode = 401;
-      return next(error);
-    }
-  };
 
-  module.exports = {signup, login, authentication};
-  
+    req.admin = freshAdmin;
+    return next();
+  } catch (err) {
+    console.log("ERROR TOKEN", err);
+    const error = new Error("Invalid or expired token");
+    error.statusCode = 401;
+    return next(error);
+  }
+};
+
+module.exports = { signup, login, authentication };

@@ -30,6 +30,7 @@ app.get("/", (req, res) => {
 
 //const PORT = process.env.APP_PORT || 4000;
 const PORT = 4000;
+//const HOST = 'tools3_project-db-1 ';
 
 app.listen(PORT, () => {
   console.log("Server running on", PORT);

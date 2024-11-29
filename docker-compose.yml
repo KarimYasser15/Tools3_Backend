@@ -1,0 +1,50 @@
+networks:
+  app_network:
+    driver: bridge
+
+services:
+  back-end:
+    build:
+      context: ./Tools3_Backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=marcos_db
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  front-end:
+    build:
+      context: ./Tools3_Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - back-end
+    networks:
+      - app_network
+  postgres:
+    container_name: database
+    image: postgres:alpine
+    ports: 
+      - "5433:5432"
+    environment:
+      #POSTGRES_HOST: localhost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marcos_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+
+volumes:
+  postgres_data:
